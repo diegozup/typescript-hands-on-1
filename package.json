@@ -9,6 +9,24 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "transform": {
+      "node_modules/variables/.+\\.(j|t)sx?$": "ts-jest"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!variables/.*)"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 90,
+        "lines": 90,
+        "statements": -10
+      }
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/diegozup/typescript-hands-on-1.git"

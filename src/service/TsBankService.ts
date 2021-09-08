@@ -1,4 +1,4 @@
-import { Account } from "../domain/domains";
+import { Account, Deposit } from "../domain/domains";
 import { Operation } from "../domain/Operation";
 import { randomId } from "../util/utis";
 
@@ -13,16 +13,14 @@ export class TsBankService {
     public createAccount(account: Account) {
         const dbAccount = this.findAccountByDocument(account.document);
         if (dbAccount) {
-            throw Error("Account already exists");
+            throw new Error("Contta já existe");
         }
         return this._createAccount(account);
     }
 
     public findAccountByDocument(id: string): Account {
-        return this.database
-            .get(id)
-            .get(Operation.CREATE_ACCOUNT)
-            .map(a => a as Account)[0];
+        const operations = this.getOperationsByType(id, Operation.CREATE_ACCOUNT)
+        return operations.length ? operations[0] : null
     }
 
     private _createAccount(account: Account): Account {
@@ -39,15 +37,47 @@ export class TsBankService {
             this.database.set(accountId, operationsByAccount);
         }
 
-        let operations = operationsByAccount.get(operationType);
-        if (!operations || !operations.length) {
-            operations = []
+        let operations = this.getOperationsByType(accountId, operationType);
+        if (!operations.length) {
+            operations.push(newOperationEntity)
             operationsByAccount.set(operationType, operations);
-        }
-
-        operations.push(newOperationEntity)
+        }        
         
         return newOperationEntity;
+    }
+
+    private getOperationsByType(accountId: string, operationType: Operation) : Array<any> {
+        const account = this.database.get(accountId)
+        let operations
+
+        if (account) {
+            operations = account.get(operationType)
+        }
+
+        return !operations || !operations.length ? [] : operations
+    }
+
+    public deposit(deposit: Deposit): Deposit {
+        const account = this.findAccountByDocument(deposit.document);
+
+        if (!account) {
+            throw new Error("Conta não existe")
+        }
+
+        if (!this.depositIsValid(deposit)) {
+            throw new Error("Valor de deposito inválido")
+        }
+
+        const depositCreated = {id: randomId(), ...deposit}
+
+        this.createOperationByAccount(account.document, Operation.DEPOSIT, depositCreated)
+        account.balance += deposit.amount
+
+        return deposit
+    }
+
+    private depositIsValid(deposit: Deposit) : boolean {
+        return deposit.amount > 0
     }
 
 }

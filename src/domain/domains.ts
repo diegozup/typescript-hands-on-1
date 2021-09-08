@@ -7,20 +7,20 @@ interface Account {
 
 interface Deposit {
     id?: string;
-    account: Account;
+    document: string;
     amount: number;
 }
 
 interface Withdraw {
     id?: string;
-    account: Account;
+    document: string;
     amount: number;
 }
 
 interface Transfer {
     id: string;
-    payer: Account;
-    receiver: Account;
+    payer: string;
+    receiver: string;
     amount: number
 }
 
